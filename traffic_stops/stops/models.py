@@ -1,5 +1,6 @@
 from django.db import models
 from collections import OrderedDict
+from pprint import pprint
 
 # for checking if searches match list of true values
 trues = ['1','1.00','Yes','True']
@@ -112,6 +113,44 @@ class Agency(models.Model):
             blk_stop_pct = self.pct_blk_drivers_stopped()
             if blk_stop_pct and blk_driving_pct:
                 return blk_stop_pct/blk_driving_pct
+
+    def campus_demos(self):
+        """
+        helper function
+        query campus demographics via AgencyData
+        returns dict
+        """
+        agency_data = AgencyData.objects.filter(agency=self)
+        campus_demos = dict()
+
+        for datum in agency_data:
+            campus_demos[datum.metric] = int(datum.value)
+
+        return campus_demos
+    
+
+    def campus_demo_enrollment_pct(self,demo):
+        """
+        calculate pct of enrollment by demographic
+        """
+        campus_demos = self.campus_demos()
+        count = campus_demos[demo]
+        total = campus_demos['Total']
+        pct = round(campus_demos[demo]/float(total)*100,1)
+        demo_data = {'campus_police': self.name, 'demo': demo, 'count': count, 'total':total, 'pct': pct}
+        return demo_data
+        
+
+    def campus_demo_enrollment_bw(self):
+        """
+        compare black vs. white student enrollment
+        """
+        print(self.name,'black, white enrollment percentages')
+        black_demographics = self.campus_demo_enrollment_pct('Afr-Amer, Black')
+        white_demographics = self.campus_demo_enrollment_pct('White')
+        for demo in [black_demographics,white_demographics]:
+            print(demo['demo'],demo['pct'],'%')
+        return[black_demographics,white_demographics]
 
 
 class AgencyData(models.Model):

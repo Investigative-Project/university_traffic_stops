@@ -29,6 +29,7 @@ def fc25():
 
     print("stops since 2019 at public unis:",y19_23.count())
 
+
 def fc26():
     #TODO 
     """NEED TO IMPORT ENROLLMENT DATA"""
