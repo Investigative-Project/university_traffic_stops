@@ -89,7 +89,7 @@ class Agency(models.Model):
             return total_data
 
         
-    def pct_blk_drivers_stopped(self,year=2022):
+    def pct_blk_drivers_stopped(self,year=2023):
         """
         what pct of drivers stopped are black last year?
         """
@@ -114,6 +114,26 @@ class Agency(models.Model):
             if blk_stop_pct and blk_driving_pct:
                 return blk_stop_pct/blk_driving_pct
 
+    def ticketing_rate_by_race(self,years=None):
+        """
+        what pct of drivers
+        get tickets,
+        by race
+        """
+        stops = self.stop_set.filter(year__in=years) if years \
+                else self.stop_set.all()
+        blk_driver_stops = stops.filter(driver_race='Black')
+        blk_driver_tix = blk_driver_stops.filter(outcome='Citation')
+        wht_driver_stops = stops.filter(driver_race='White')
+        wht_driver_tix = wht_driver_stops.filter(outcome='Citation')
+        if blk_driver_stops.count():
+            return {'blk_drv_tix_rate': blk_driver_tix.count()/float(blk_driver_stops.count()),
+                    'wht_drv_tix_rate': wht_driver_tix.count()/float(wht_driver_stops.count())}
+        else:
+            print('no Black drivers stopped by',self.name)
+
+
+
     def campus_demos(self):
         """
         helper function
@@ -136,7 +156,7 @@ class Agency(models.Model):
         campus_demos = self.campus_demos()
         count = campus_demos[demo]
         total = campus_demos['Total']
-        pct = round(campus_demos[demo]/float(total)*100,1)
+        pct = campus_demos[demo]/float(total)
         demo_data = {'campus_police': self.name, 'demo': demo, 'count': count, 'total':total, 'pct': pct}
         return demo_data
         
@@ -145,11 +165,11 @@ class Agency(models.Model):
         """
         compare black vs. white student enrollment
         """
-        print(self.name,'black, white enrollment percentages')
+        #print(self.name,'black, white enrollment percentages')
         black_demographics = self.campus_demo_enrollment_pct('Afr-Amer, Black')
         white_demographics = self.campus_demo_enrollment_pct('White')
-        for demo in [black_demographics,white_demographics]:
-            print(demo['demo'],demo['pct'],'%')
+        #for demo in [black_demographics,white_demographics]:
+            #print(demo['demo'],demo['pct'],'%')
         return[black_demographics,white_demographics]
 
 

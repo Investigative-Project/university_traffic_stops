@@ -1,4 +1,5 @@
 from stops.models import Stop, Agency
+from pprint import pprint
 
 # our list of public university agencies
 pub_uni_agencies = Agency.objects.filter(name__in=["EASTERN ILLINOIS UNIVERSITY POLICE", "GOVERNORS STATE UNIVERSITY POLICE","ILLINOIS STATE UNIVERSITY POLICE", "NORTHEASTERN ILLINOIS UNIVERSITY POLICE", "NORTHERN ILLINOIS UNIVERSITY POLICE", "SOUTHERN ILLINOIS UNIVERSITY CARBONDALE POLICE", "SOUTHERN ILLINOIS UNIVERSITY EDWARDSVILLE POLICE", "UNIVERSITY OF ILLINOIS CHICAGO POLICE","UNIVERSITY OF ILLINOIS SPRINGFIELD POLICE", "UNIVERSITY OF ILLINOIS URBANA POLICE", "WESTERN ILLINOIS UNIVERSITY POLICE"])
@@ -20,20 +21,32 @@ y23b_tix, y23w_tix = y23b.filter(outcome='Citation'), y23w.filter(outcome='Citat
 
 
 def fc25():
-    #TODO 
-    """NEED TO IMPORT ENROLLMENT DATA"""
-    """Black drivers have been pulled over at rates that eclipsed enrollment since at least 2019, according to a new analysis of 33,388 traffic stops by officers at campus police departments at Illinois' eight public four-year colleges and their 11 campuses"""
+    fact = """Black drivers have been pulled over at rates that eclipsed enrollment since at least 2019, according to a new analysis of 33,388 traffic stops by officers at campus police departments at Illinois' eight public four-year colleges and their 11 campuses"""
     print('FC 25')
     print(fact)
     print('####')
+    for agency in pub_uni_agencies:
+        print(agency.name)
+        black_driver_stops_since_2019 = agency.stop_set.filter(year__gte=2019,driver_race='Black').count()
+        all_driver_stops_since_2019 = agency.stop_set.filter(year__gte=2019).count()
+
+        black_demographics, white_demographics = agency.campus_demo_enrollment_bw()
+
+        #print('Total Black drivers stopped since 2019',black_driver_stops_since_2019)
+        #print('Black student total enrollment:', black_demographics['count'])
+        print('--')
+        print('Black student percent of enrollment:', black_demographics['pct'])
+        print('Black drivers percent of all stops since 2019:',round(black_driver_stops_since_2019/float(all_driver_stops_since_2019)*100,1))
+        print('%%%%')
+        
 
     print("stops since 2019 at public unis:",y19_23.count())
+    print("stops of Black drivers since 2019 at public unis:",y19_23.filter(driver_race='Black').count())
+             
 
 
 def fc26():
-    #TODO 
-    """NEED TO IMPORT ENROLLMENT DATA"""
-    """In 2023, the last full year for which data was available, the rate of Black drivers stopped was higher than the enrollment rate of Black students at all seven public colleges who reported traffic stops."""
+    fact = """In 2023, the last full year for which data was available, the rate of Black drivers stopped was higher than the enrollment rate of Black students at all seven public colleges who reported traffic stops."""
     print('FC 26')
     print(fact)
     print('####')
@@ -87,12 +100,19 @@ def fc52():
     print(fact)
     print('####')
 
+    #🙀
+    results = sorted([{'agency':agency.name,'black_enrollment':agency.campus_demo_enrollment_pct('Afr-Amer, Black')['pct'],'black_stop_pct':agency.pct_blk_drivers_stopped()} for agency in pub_uni_agencies if agency.pct_blk_drivers_stopped()], key = lambda q: q['black_stop_pct']-q['black_enrollment'], reverse=True)
+    pprint(results)
+    return results
+
 
 def fc53():
-    fact = """There, Black drivers make up nearly 50 percent of traffic stops by campus police while Black students make up 8 percent of enrollment."""
+    fact = """There [UIC], Black drivers make up nearly 50 percent of traffic stops by campus police while Black students make up 8 percent of enrollment."""
     print('FC 53')
     print(fact)
     print('####')
+    # same as fc52
+    return fc52()
 
 
 def fc60():
@@ -100,6 +120,8 @@ def fc60():
     print('FC 60')
     print(fact)
     print('####')
+    # same as fc52
+    return fc52()
 
 
 def fc69():
@@ -107,6 +129,8 @@ def fc69():
     print('FC 69')
     print(fact)
     print('####')
+    # same as fc52
+    return fc52()
 
 
 def fc70():
@@ -114,6 +138,9 @@ def fc70():
     print('FC 70')
     print(fact)
     print('####')
+    
+    # same as fc52
+    return fc52()
 
 
 def fc79():
@@ -122,6 +149,9 @@ def fc79():
     print(fact)
     print('####')
 
+    for agency in pub_uni_agencies:
+        print(agency.name,agency.ticketing_rate_by_race(years=range(2020,2024)))
+
 
 def fc80():
     fact = """Among the 11 campus police departments, the widest spread between the rates of white and Black drivers getting warnings was at the University of Illinois Urbana-Champaign. There, Black drivers were nearly twice as likely to receive a ticket compared to white drivers."""
@@ -129,19 +159,25 @@ def fc80():
     print(fact)
     print('####')
 
+    # same as fc79 
+    return fc79()
+
 
 def fc109():
     fact = """The pandemic left many college campuses bare, which meant fewer drivers on the road and fewer people being pulled over by campus police. However, Black drivers were still overwhelmingly stopped."""
     print('FC 109')
     print(fact)
     print('####')
-
+    
+    # same as fc52
+    return fc52()
 
 def fc110():
     fact = """The Investigative Project found that the rate of traffic stops decreased by 1% for Black drivers versus by 4% for white drivers during the pandemic, from 2020 to 2023."""
     print('FC 110')
     print(fact)
     print('####')
+    sql_query = """select year, driver_race, count(*) from stops where driver_race in ('Black','White') and AgencyName = 'UNIVERSITY OF ILLINOIS URBANA POLICE' group by year, driver_race order by year, driver_race;"""
 
 
 def fc121():
@@ -149,6 +185,8 @@ def fc121():
     print('FC 121')
     print(fact)
     print('####')
+    uiuc = Agency.objects.get(name='UNIVERSITY OF ILLINOIS URBANA POLICE')
+    print('verbal warnings by UIUC police, since 2020:', uiuc.stop_set.filter(year__gte=2020,outcome='Verbal Warning').count())
 
 
 def fc122():
